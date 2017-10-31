@@ -5,8 +5,9 @@ nbr_transport_types = 5     # 0: bicycle, 1: car, 2:buss, 3: boat, 4: plane
 
 city_locations = graph.generate_random_locations(nbr_cities)
 distance_matrix = graph.create_distance_matrix(city_locations)
+city_extra_points = graph.generate_random_city_extra_points(nbr_cities, max_point=1)
 
-travel_time_graph, punishment_graph, score_graph = graph.generate_punishment_graph_from_distance(nbr_transport_types, distance_matrix)
+travel_time_graph, punishment_graph, score_graph = graph.generate_punishment_graph_from_distance(nbr_transport_types, distance_matrix, city_extra_points)
 
 pheromones = aco.initiate_pheromones(score_graph)
 

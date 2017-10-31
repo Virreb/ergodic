@@ -43,7 +43,7 @@ def generate_random_punishment_graph(nbr_transport_types, nbr_cities):
     return punishment_graph
 
 
-def generate_punishment_graph_from_distance(nbr_transport_types, distance_matrix):
+def generate_punishment_graph_from_distance(nbr_transport_types, distance_matrix, extra_points):
     """
     score: 1/(travel time + punishment) where travel time is 'distance'/'transport_type_speed' and punishment is
     'transport_type_punishment'
@@ -93,30 +93,20 @@ def generate_punishment_graph_from_distance(nbr_transport_types, distance_matrix
 
                 # Calculate score and travel time
                 travel_time = dist/transport_type_speed[k_transport_type]
-                score = 1/(travel_time + time_punishment_ratio * transport_type_punishment[k_transport_type])
+                score = (1+extra_points[to_city])/(travel_time + time_punishment_ratio * transport_type_punishment[k_transport_type])
 
                 # Add values to graphs
                 travel_time_graph[k_transport_type, from_city, to_city] = travel_time
-                punishment_graph[k_transport_type, from_city, to_city] = transport_type_punishment[k_transport_type]
+
+                punishment_graph[k_transport_type, from_city, to_city] = \
+                    travel_time + time_punishment_ratio*transport_type_punishment[k_transport_type]
+
                 score_graph[k_transport_type, from_city, to_city] = score
 
     return travel_time_graph, punishment_graph, score_graph
 
 
-def generate_random_city_extra_points(nbr_cities):
+def generate_random_city_extra_points(nbr_cities, max_point=1):
     import numpy as np
 
-    min_points = 5
-    max_points = 30
-
-    # init extra points randomly for every city
-    extra_points = np.random.randint(min_points, max_points, size=nbr_cities)
-
-    # randomly choose which cities to get the extra points (0 or 1)
-    cities_index = np.random.randint(2, nbr_cities)
-
-    # set values, else zero
-    cities_with_points = np.full(shape=nbr_cities, fill_value=0)
-    cities_with_points[cities_index == 1] = extra_points[cities_index == 1]
-
-    return cities_with_points
+    return np.random.rand(size=nbr_cities) * max_point
