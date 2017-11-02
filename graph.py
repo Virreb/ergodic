@@ -43,6 +43,29 @@ def generate_random_punishment_graph(nbr_transport_types, nbr_cities):
     return punishment_graph
 
 
+def add_random_paths_to_static_distance_graph(distance_matrix, static_connection_graph):
+    import numpy as np
+
+    transport_type_speed = [20, 100, 90, 50, 1000]   # i km/h: cykel, bil, buss, båt, flyg
+    transport_type_punishment = [1, 80, 55, 35, 100]    # per användning
+    time_punishment_ratio = 0.8
+
+    punishment_graph = np.copy(static_connection_graph)
+
+    for transport_type, both_city_matrix in enumerate(punishment_graph):
+        for from_city, to_city_vector in enumerate(both_city_matrix):
+            for to_city, val in enumerate(to_city_vector):
+
+                if (val == np.NAN and np.random.rand() < 0.5) or val == 1:
+
+                    travel_time = distance_matrix[from_city, to_city] / transport_type_speed[transport_type]
+                    punishment = travel_time + time_punishment_ratio * transport_type_punishment[transport_type]
+
+                    punishment_graph[transport_type, from_city, to_city] = punishment
+
+    return punishment_graph
+
+
 def generate_punishment_graph_from_distance(nbr_transport_types, distance_matrix, extra_points):
     """
     score: 1/(travel time + punishment) where travel time is 'distance'/'transport_type_speed' and punishment is
@@ -80,6 +103,9 @@ def generate_punishment_graph_from_distance(nbr_transport_types, distance_matrix
                 trans_types.append(4)
             if rnd < 0.20:
                 trans_types.append(3)
+
+            if rnd < 0.5 and 0 in trans_types:
+                trans_types.remove(1)
             #if rnd < 0.40:
             #    trans_types.append(3)
             #if rnd < 0.60:
