@@ -14,7 +14,7 @@ def generate_static_connection_graph(nbr_transport_types, nbr_cities):
                         [8, 3], [8, 9], [8, 0],
                         [9, 8], [9, 1]]
 
-    for connection in connected_citis:
+    for connection in connected_cities:
         random_trsp = np.random.randint(nbr_transport_types)
         graph[random_trsp, connection[0], connection[1]] = 1
 
