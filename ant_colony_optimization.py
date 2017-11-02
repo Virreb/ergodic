@@ -90,13 +90,15 @@ def summon_the_ergodic_colony(punishment_graph, city_extra_points, start_city=0,
 
             path = get_ant_path(city_extra_points, punishment_graph, start_city, target_city, pheromones, alpha, beta)
             score = evaluate_path(punishment_graph, city_extra_points, path)
-
+            # TODO: Check if the ant has found a path, if True, add path and score. Else, dont add
             all_travelled_paths.append(path)
             all_scores.append(score)
 
             if score > best_score:
                 best_score = score
                 best_path = path
+
+        print(f'Iteration {i_iteration} of {nbr_max_iterations}', end='')
 
         pheromones = update_pheromones(pheromones, all_travelled_paths, all_scores, evaporation)
         score_std = np.std(all_scores/np.mean(all_scores))
