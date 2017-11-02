@@ -9,8 +9,7 @@ city_extra_points = graph.generate_random_city_extra_points(nbr_cities, max_poin
 
 travel_time_graph, punishment_graph, score_graph = graph.generate_punishment_graph_from_distance(nbr_transport_types, distance_matrix, city_extra_points)
 
-pheromones = aco.initiate_pheromones(score_graph)
-
+aco.summon_the_ergodic_colony(punishment_graph, city_extra_points, start_city=0, target_city=9, nbr_ants=50)
 
 #punishment_graph = init.generate_random_punishment_graph(nbr_transport_types, nbr_cities)
 #print(punishment_graph)

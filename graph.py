@@ -57,7 +57,7 @@ def generate_punishment_graph_from_distance(nbr_transport_types, distance_matrix
     nbr_cities = len(distance_matrix)
 
     transport_type_speed = [20, 100, 90, 50, 1000]   # i km/h: cykel, bil, buss, båt, flyg
-    transport_type_punishment = [0, 80, 55, 35, 100]    # per användning
+    transport_type_punishment = [1, 80, 55, 35, 100]    # per användning
     time_punishment_ratio = 0.8
 
     punishment_graph = np.full(shape=(nbr_transport_types, nbr_cities, nbr_cities), fill_value=np.NAN)
@@ -109,4 +109,4 @@ def generate_punishment_graph_from_distance(nbr_transport_types, distance_matrix
 def generate_random_city_extra_points(nbr_cities, max_point=1):
     import numpy as np
 
-    return np.random.rand(size=nbr_cities) * max_point
+    return np.random.rand(nbr_cities) * max_point
