@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def initiate_pheromones(score_graph):
     import numpy as np
 
@@ -15,9 +16,9 @@ def get_next_city(current_city, city_extra_points, phermone_levels, punishment_g
     score_matrix = (1+city_extra_points) / punishment_matrix
 
     probability_matrix = available_phermone_levels**alpha * score_matrix**beta
-    probability_matrix = probability_matrix / probability_matrix.sum()  # normalize
+    probability_matrix = probability_matrix / np.nansum(probability_matrix)  # normalize
 
-    cummulative_prob_vector = probability_matrix.cumsum()
+    cummulative_prob_vector = np.nancumsum(probability_matrix)
 
     r = np.random.rand()
     winning_vector_index = np.searchsorted(cummulative_prob_vector, r)
@@ -46,8 +47,7 @@ def get_ant_path(city_extra_points, punishment_graph, start_city, target_city, p
     return travelled_path
 
 
-def evaluate_path(punishment_graph, city_extra_points, travelled_path, start_city):
-    # TODO
+def evaluate_path(punishment_graph, city_extra_points, travelled_path):
     total_punishment = np.nansum(punishment_graph * travelled_path)
     visited_cities = np.sum(travelled_path > 0, axis=(0, 1))
     total_city_extra_point = np.sum(city_extra_points[visited_cities])
@@ -57,40 +57,55 @@ def evaluate_path(punishment_graph, city_extra_points, travelled_path, start_cit
     return score    # Maybe return travel time, punishment, score as different values
 
 
-def update_pheromones(old_pheromones, all_ant_paths, parameters):
-    # TODO
-    new_pheromone = []
+def update_pheromones(old_pheromones, all_paths, all_scores, evaporation):
 
-    return new_pheromone
+    delta_pheromones = np.zeros(shape=old_pheromones.shape)
+    for path, score in zip(all_paths, all_scores):
+        delta_pheromones += path * score
+
+    new_pheromones = (1 - evaporation) * old_pheromones + delta_pheromones
+
+    return new_pheromones
 
 
-def summon_the_ergodic_colony(graph, nbr_ants=30, nbr_max_iterations=500, start_city=0, goal_city=1, parameters=0,
+def summon_the_ergodic_colony(punishment_graph, city_extra_points, start_city=0, target_city=1, nbr_ants=30,
+                              nbr_max_iterations=500, evaporation=0.5, alpha=1.0, beta=3.0,
                               *args, **kwargs):
     import numpy as np
-    # TODO
+    import time
 
-    pheromones = initiate_pheromones(graph)
+    pheromones = initiate_pheromones(punishment_graph)
 
-    std_treshold = 1    # should be a parameter
+    std_treshold = 0.5    # should be a parameter
     score_std = std_treshold
     i_iteration = 0
+    best_path = []
+    best_score = 0
+    start_time = time.time()
     while score_std >= std_treshold and i_iteration <= nbr_max_iterations:
-        all_ant_paths = list()
-        all_ant_scores = list()
+        all_travelled_paths = list()
+        all_scores = list()
 
         for ant in range(nbr_ants):
 
-            path = walk_with_ant(pheromones)
-            score = evaluate_path(path)
+            path = get_ant_path(city_extra_points, punishment_graph, start_city, target_city, pheromones, alpha, beta)
+            score = evaluate_path(punishment_graph, city_extra_points, path)
 
-            all_ant_paths.append(path)
-            all_ant_scores.append(score)
+            all_travelled_paths.append(path)
+            all_scores.append(score)
 
-        update_pheromones()
-        score_std = np.std(all_ant_scores)
+            if score > best_score:
+                best_score = score
+                best_path = path
 
-    ultimate_ant_travel_path = 'ultra fast, ultra miljövänlig'
-    ultimate_travel_time = 0.5
-    ultimate_punishment = 0.1
+        pheromones = update_pheromones(pheromones, all_travelled_paths, all_scores, evaporation)
+        score_std = np.std(all_scores/np.mean(all_scores))
 
-    return ultimate_ant_travel_path, ultimate_travel_time, ultimate_punishment
+    computation_time = time.time() - start_time
+
+    print('The Ergodic colony has converged!\n'
+          f'Best path: {best_path}\n'
+          f'Best score: {best_score}\n'
+          f'Computation time: {computation_time}')
+
+    return best_path, best_score
