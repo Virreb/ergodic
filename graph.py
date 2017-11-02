@@ -1,3 +1,24 @@
+import numpy as np
+
+
+def generate_static_connection_graph(nbr_transport_types, nbr_cities):
+    graph = np.nan * np.zeros(shape=(nbr_transport_types, nbr_cities, nbr_cities))
+    connected_cities = [[0, 1], [0, 3], [0, 8],
+                        [1, 0], [1, 9],
+                        [2, 3], [2, 4], [2, 5],
+                        [3, 2], [3, 0], [3, 8],
+                        [4, 2], [4, 5],
+                        [5, 2], [5, 7], [5, 6],
+                        [6, 5], [6, 7],
+                        [7, 5], [7, 6],
+                        [8, 3], [8, 9], [8, 0],
+                        [9, 8], [9, 1]]
+
+    for connection in connected_citis:
+        random_trsp = np.random.randint(nbr_transport_types)
+        graph[random_trsp, connection[0], connection[1]] = 1
+
+    return graph
 
 
 def generate_random_locations(nbr_cities):
