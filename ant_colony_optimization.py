@@ -10,7 +10,7 @@ def initiate_pheromones(score_graph):
 
     norm = np.sqrt(np.nansum(np.square(score_graph)))
 
-    return score_graph / norm
+    return score_graph/norm
 
 
 def get_next_city(current_city, city_extra_points, pheromone_levels, punishment_graph, alpha, beta):
@@ -26,9 +26,9 @@ def get_next_city(current_city, city_extra_points, pheromone_levels, punishment_
 
     r = np.random.rand()
     winning_vector_index = np.searchsorted(cumulative_prob_vector, r)
-    tranpsort_choice, next_city = np.unravel_index(winning_vector_index, probability_matrix.shape)
+    transport_choice, next_city = np.unravel_index(winning_vector_index, probability_matrix.shape)
 
-    return tranpsort_choice, next_city
+    return transport_choice, next_city
 
 
 def get_ant_path(city_extra_points, punishment_graph, start_city, target_city, phermone_levels, alpha, beta):
