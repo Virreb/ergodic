@@ -31,20 +31,22 @@ def get_ant_path(city_extra_points, punishment_graph, start_city, target_city, p
 
     current_city = start_city
     temp_city_extra_points = np.copy(city_extra_points)
-    travelled_path = np.zeros(shape=punishment_graph.shape)
+    travelled_graph = np.zeros(shape=punishment_graph.shape)
+    travelled_path = []    # list of tuples (transport_choice, from_node, to_node)
 
     target_node_reached = False
     i = 0
     while not target_node_reached and i < 1000000:
         temp_city_extra_points[current_city] = 0  # no addidtional points for going to the same node again
         transport_choice, next_city = get_next_city(current_city, temp_city_extra_points, phermone_levels, punishment_graph, alpha, beta)
-        travelled_path[transport_choice, current_city, next_city] += 1
+        travelled_graph[transport_choice, current_city, next_city] += 1
+        travelled_path.append((transport_choice, current_city, next_city))
         current_city = next_city
         if next_city == target_city:
             target_node_reached = True
         i += 1
 
-    return travelled_path
+    return travelled_graph, travelled_path
 
 
 def evaluate_path(punishment_graph, city_extra_points, travelled_path):
@@ -88,10 +90,10 @@ def summon_the_ergodic_colony(punishment_graph, city_extra_points, start_city=0,
 
         for ant in range(nbr_ants):
 
-            path = get_ant_path(city_extra_points, punishment_graph, start_city, target_city, pheromones, alpha, beta)
-            score = evaluate_path(punishment_graph, city_extra_points, path)
+            graph, path = get_ant_path(city_extra_points, punishment_graph, start_city, target_city, pheromones, alpha, beta)
+            score = evaluate_path(punishment_graph, city_extra_points, graph)
             # TODO: Check if the ant has found a path, if True, add path and score. Else, dont add
-            all_travelled_paths.append(path)
+            all_travelled_paths.append(graph)
             all_scores.append(score)
 
             if score > best_score:
