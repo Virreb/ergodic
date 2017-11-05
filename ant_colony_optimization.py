@@ -100,16 +100,16 @@ def summon_the_ergodic_colony(punishment_graph, city_extra_points, start_city=0,
                 best_score = score
                 best_path = path
 
-        print(f'Iteration {i_iteration} of {nbr_max_iterations}', end='')
+        #print(f'Iteration {i_iteration} of {nbr_max_iterations}', end='')
 
         pheromones = update_pheromones(pheromones, all_travelled_paths, all_scores, evaporation)
         score_std = np.std(all_scores/np.mean(all_scores))
 
     computation_time = time.time() - start_time
 
-    print('The Ergodic colony has converged!\n'
+    print(f'\nThe Ergodic colony has converged in {i_iteration} of {nbr_max_iterations} iterations!\n'
           f'Best path: {best_path}\n'
           f'Best score: {best_score}\n'
-          f'Computation time: {computation_time}')
+          f'Computation time: {computation_time}\n')
 
     return best_path, best_score

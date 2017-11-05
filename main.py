@@ -22,6 +22,15 @@ print(f'{np.count_nonzero(punishment_graph > 0)} / {nbr_cities*nbr_cities*nbr_tr
 result = Parallel(n_jobs=4)(delayed(aco.summon_the_ergodic_colony)(punishment_graph, city_extra_points,
                                                                    start_city=0, target_city=9, nbr_ants=50)
                             for i in range(nbr_parallell_colonies))
-print(result)
+
+best_score = 0
+for res in result:
+    path = res[0]
+    score = res[1]
+
+    if score > best_score:
+        best_score = score
+        best_path = path
+print(f'Finished! {nbr_parallell_colonies} colonies has converged.\nBest score: {best_score}\nBest path: {best_path}')
 
 #aco.summon_the_ergodic_colony(punishment_graph, city_extra_points, start_city=0, target_city=9, nbr_ants=50)
