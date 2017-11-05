@@ -72,7 +72,7 @@ def add_random_paths_to_static_graph(distance_matrix, static_connection_graph):
     # enviromental_offset = [0, 10, 3, 1, 60]     # per use
     # transport_type_punishment = [0, 10, 2, 1, 100]    # per km
 
-    k = [1.5, 0.3, 0.5, 0.7, 0.1] / 10;
+    k = np.array([1.5, 0.3, 0.5, 0.7, 0.1]) / 10;
     m = [0, 3, 1.1, 1, 10]
 
     time_punishment_ratio = 0.8
