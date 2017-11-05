@@ -78,7 +78,7 @@ def summon_the_ergodic_colony(punishment_graph, city_extra_points, start_city=0,
 
     pheromones = initiate_pheromones(punishment_graph)
 
-    std_treshold = 0.5    # should be a parameter
+    std_treshold = 0.1    # should be a parameter
     score_std = std_treshold
     i_iteration = 0
     best_path = []
@@ -101,6 +101,7 @@ def summon_the_ergodic_colony(punishment_graph, city_extra_points, start_city=0,
                 best_path = path
 
         #print(f'Iteration {i_iteration} of {nbr_max_iterations}', end='')
+        i_iteration += 1
 
         pheromones = update_pheromones(pheromones, all_travelled_paths, all_scores, evaporation)
         score_std = np.std(all_scores/np.mean(all_scores))
