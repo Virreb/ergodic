@@ -18,19 +18,22 @@ punishment_graph = graph.add_random_paths_to_static_graph(distance_matrix, stati
 print(f'{np.count_nonzero(punishment_graph > 0)} / {nbr_cities*nbr_cities*nbr_transport_types} connections')
 #travel_time_graph, punishment_graph, score_graph = graph.generate_punishment_graph_from_distance(nbr_transport_types, distance_matrix, city_extra_points)
 
+
 # Generate result
-result = Parallel(n_jobs=4)(delayed(aco.summon_the_ergodic_colony)(punishment_graph, city_extra_points,
-                                                                   start_city=0, target_city=9, nbr_ants=50)
-                            for i in range(nbr_parallell_colonies))
+# result = Parallel(n_jobs=4)(delayed(aco.summon_the_ergodic_colony)(punishment_graph, city_extra_points,
+#                                                                    start_city=0, target_city=9, nbr_ants=50)
+#                             for i in range(nbr_parallell_colonies))
+#
+# best_score = 0
+# for res in result:
+#     path = res[0]
+#     score = res[1]
+#
+#     if score > best_score:
+#         best_score = score
+#         best_path = path
+# print(f'Finished! {nbr_parallell_colonies} colonies has converged.\nBest score: {best_score}\nBest path: {best_path}')
 
-best_score = 0
-for res in result:
-    path = res[0]
-    score = res[1]
+travelled_path, score = aco.summon_the_ergodic_colony(punishment_graph, city_extra_points, start_city=0, target_city=9, nbr_ants=50)
 
-    if score > best_score:
-        best_score = score
-        best_path = path
-print(f'Finished! {nbr_parallell_colonies} colonies has converged.\nBest score: {best_score}\nBest path: {best_path}')
-
-#aco.summon_the_ergodic_colony(punishment_graph, city_extra_points, start_city=0, target_city=9, nbr_ants=50)
+graph.plot_graph(city_locations, punishment_graph, travelled_path)
