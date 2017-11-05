@@ -64,7 +64,7 @@ def generate_random_punishment_graph(nbr_transport_types, nbr_cities):
     return punishment_graph
 
 
-def add_random_paths_to_static_distance_graph(distance_matrix, static_connection_graph):
+def add_random_paths_to_static_graph(distance_matrix, static_connection_graph):
     import numpy as np
 
     # transport_type_speed = [20, 100, 70, 30, 1000]   # i km/h: cykel, bil, buss, båt, flyg

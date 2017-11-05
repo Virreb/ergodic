@@ -9,7 +9,7 @@ distance_matrix = graph.create_distance_matrix(city_locations)
 city_extra_points = graph.generate_random_city_extra_points(nbr_cities, max_point=1)
 
 static_connection_graph = graph.generate_static_connection_graph(nbr_transport_types, nbr_cities)
-punishment_graph = graph.add_random_paths_to_static_distance_graph(distance_matrix, static_connection_graph)
+punishment_graph = graph.add_random_paths_to_static_graph(distance_matrix, static_connection_graph)
 
 #print(punishment_graph)
 print(f'{np.count_nonzero(punishment_graph > 0)} / {nbr_cities*nbr_cities*nbr_transport_types} connections')
