@@ -67,10 +67,13 @@ def generate_random_punishment_graph(nbr_transport_types, nbr_cities):
 def add_random_paths_to_static_distance_graph(distance_matrix, static_connection_graph):
     import numpy as np
 
-    transport_type_speed = [20, 100, 70, 30, 1000]   # i km/h: cykel, bil, buss, båt, flyg
-    start_time_offset = [0, 0, 1, 8, 24]    # per use
-    enviromental_offset = [0, 10, 3, 1, 60]     # per use
-    transport_type_punishment = [0, 10, 2, 1, 100]    # per km
+    # transport_type_speed = [20, 100, 70, 30, 1000]   # i km/h: cykel, bil, buss, båt, flyg
+    # start_time_offset = [0, 0, 1, 8, 24]    # per use
+    # enviromental_offset = [0, 10, 3, 1, 60]     # per use
+    # transport_type_punishment = [0, 10, 2, 1, 100]    # per km
+
+    k = [1.5, 0.3, 0.5, 0.7, 0.1] / 10;
+    m = [0, 3, 1.1, 1, 10]
 
     time_punishment_ratio = 0.8
 
@@ -82,13 +85,13 @@ def add_random_paths_to_static_distance_graph(distance_matrix, static_connection
 
                 if (from_city is not to_city and val is not np.NAN and np.random.rand() < 0.1) or val == 1:
                     dist = distance_matrix[from_city, to_city] * (1 + 0.2*np.random.rand())     # roads are not fågelvägen mostly
-                    speed = transport_type_speed[transport_type]
-                    time_offset = start_time_offset[transport_type]
-                    env_offset = enviromental_offset[transport_type]
-                    env_cost = transport_type_punishment[transport_type]
+                    # speed = transport_type_speed[transport_type]
+                    # time_offset = start_time_offset[transport_type]
+                    # env_offset = enviromental_offset[transport_type]
+                    # env_cost = transport_type_punishment[transport_type]
 
-                    punishment = dist/speed + time_offset + time_punishment_ratio * (dist * env_cost + env_offset)
-
+                    # punishment = dist/speed + time_offset + time_punishment_ratio * (dist * env_cost + env_offset)
+                    punishment = k[transport_type]*dist + m[transport_type]
                     punishment_graph[transport_type, from_city, to_city] = punishment
 
     return punishment_graph
