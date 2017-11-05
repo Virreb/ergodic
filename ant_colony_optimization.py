@@ -42,7 +42,7 @@ def get_ant_path(city_extra_points, punishment_graph, start_city, target_city, p
     target_node_reached = False
     i = 0
     while not target_node_reached:
-        temp_city_extra_points[current_city] = 0  # no addidtional points for going to the same node again
+        temp_city_extra_points[current_city] = 0  # no additional points for going to the same node again
         transport_choice, next_city = get_next_city(current_city, temp_city_extra_points, phermone_levels, punishment_graph, alpha, beta)
         travelled_graph[transport_choice, current_city, next_city] += 1
         travelled_path.append((transport_choice, current_city, next_city))
