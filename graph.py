@@ -79,12 +79,11 @@ def add_random_paths_to_static_graph(distance_matrix, static_connection_graph):
     time_punishment_ratio = 0.8
 
     punishment_graph = np.copy(static_connection_graph)
-
     for transport_type, both_city_matrix in enumerate(punishment_graph):
         for from_city, to_city_vector in enumerate(both_city_matrix):
             for to_city, val in enumerate(to_city_vector):
 
-                if (from_city is not to_city and val is not np.NAN and np.random.rand() < 0.1) or val == 1:
+                if (from_city is not to_city and np.isnan(val) and np.random.rand() < 0.025) or val == 1:
                     dist = distance_matrix[from_city, to_city] * (1 + 0.2*np.random.rand())     # roads are not fågelvägen mostly
                     # speed = transport_type_speed[transport_type]
                     # time_offset = start_time_offset[transport_type]
@@ -94,7 +93,6 @@ def add_random_paths_to_static_graph(distance_matrix, static_connection_graph):
                     # punishment = dist/speed + time_offset + time_punishment_ratio * (dist * env_cost + env_offset)
                     punishment = k[transport_type]*dist + m[transport_type]
                     punishment_graph[transport_type, from_city, to_city] = punishment
-
     return punishment_graph
 
 
@@ -187,3 +185,37 @@ def merge_graph_to_matrix(graph):
                 matrix[i, j] = np.nan
 
     return matrix, transport_matrix
+
+
+def plot_graph(city_locations, punishment_graph, travelled_path):
+    import networkx as nx
+    import matplotlib.pyplot as plt
+
+    G = nx.MultiGraph()
+
+    pos = dict()
+    labels = dict()
+    # Add nodes and labels
+    for city, loc in enumerate(city_locations):
+        labels[city] = city
+        pos[city] = (int(loc[0]), int(loc[1]))
+
+    black_edges = []
+    red_edges = []
+
+    # Add edges with colors
+    for transport_type, both_city_matrix in enumerate(punishment_graph):
+        for from_city, to_city_vector in enumerate(both_city_matrix):
+            for to_city, val in enumerate(to_city_vector):
+                if not np.isnan(val):
+                    if (transport_type, from_city, to_city) in travelled_path:
+                        red_edges.append((from_city, to_city))
+                    else:
+                        black_edges.append((from_city, to_city))
+
+    # Plot the graph
+    nx.draw_networkx_nodes(G, pos, cmap=plt.get_cmap('jet'), node_color=0.25, node_size=500000)
+    nx.draw_networkx_labels(G, pos, labels=labels, font_size=20, font_color='blue')
+    nx.draw_networkx_edges(G, pos, edgelist=black_edges, arrows=False)
+    nx.draw_networkx_edges(G, pos, edgelist=red_edges, edge_color='r', arrows=True)
+    plt.show()
