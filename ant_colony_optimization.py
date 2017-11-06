@@ -91,6 +91,7 @@ def summon_the_ergodic_colony(punishment_graph, city_extra_points, start_city=0,
     best_path = []
     best_score = 0
     start_time = time.time()
+    nbr_lost_ants = 0
     while score_std >= std_treshold and i_iteration <= nbr_max_iterations:
         all_travelled_paths = list()
         all_scores = list()
@@ -99,15 +100,20 @@ def summon_the_ergodic_colony(punishment_graph, city_extra_points, start_city=0,
             try:
                 graph, path = get_ant_path(city_extra_points, punishment_graph, start_city, target_city, pheromones, alpha, beta)
                 score = evaluate_path(punishment_graph, city_extra_points, graph)
-                # TODO: Check if the ant has found a path, if True, add path and score. Else, dont add
+
                 all_travelled_paths.append(graph)
                 all_scores.append(score)
 
                 if score > best_score:
                     best_score = score
                     best_path = path
+
             except AntGotLostException:
-                print('Ant got lost:(')
+                nbr_lost_ants += 1
+                #print('Ant got lost:(')
+
+            if nbr_lost_ants > 0.5*nbr_ants:
+                return [], 0
 
         #print(f'Iteration {i_iteration} of {nbr_max_iterations}', end='')
         i_iteration += 1
@@ -123,3 +129,24 @@ def summon_the_ergodic_colony(punishment_graph, city_extra_points, start_city=0,
           f'Computation time: {computation_time}\n')
 
     return best_path, best_score
+
+
+def run_parallel_colonies(nbr_parallel_jobs, nbr_colonies, *args, **kwargs):
+    from joblib import Parallel, delayed
+
+    all_result = Parallel(n_jobs=nbr_parallel_jobs)(delayed(summon_the_ergodic_colony)(args, kwargs)
+                                                    for i in range(nbr_colonies))
+
+    best_score = 0
+    for res in all_result:
+        path = res[0]
+        score = res[1]
+
+        if score > best_score:
+            best_score = score
+            best_path = path
+
+    print(f'Finished! {nbr_parallell_colonies} colonies has converged.\n'
+          f'Best score: {best_score}\nBest path: {best_path}')
+
+    return best_path, best_score, all_result
