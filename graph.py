@@ -1,6 +1,7 @@
 import numpy as np
 
 
+
 def generate_static_connection_graph(nbr_transport_types, nbr_cities):
     graph = np.nan * np.zeros(shape=(nbr_transport_types, nbr_cities, nbr_cities))
     connected_cities = [[0, 1], [0, 3], [0, 8],
@@ -167,3 +168,22 @@ def generate_random_city_extra_points(nbr_cities, max_point=1):
     import numpy as np
 
     return np.random.rand(nbr_cities) * max_point
+
+
+def merge_graph_to_matrix(graph):
+    nbr_of_cities = graph.shape[1]
+    transport_matrix = np.zeros(shape=(nbr_of_cities, nbr_of_cities))
+    matrix = np.zeros(shape=(nbr_of_cities, nbr_of_cities))
+    for i in range(nbr_of_cities):
+        for j in range(nbr_of_cities):
+            transport_array = graph[:, i, j]
+            try:
+                transport_choice = np.nanargmin(transport_array)
+                graph_value = graph[transport_choice, i, j]
+                transport_matrix[i, j] = transport_choice
+                matrix[i, j] = graph_value
+            except ValueError:
+                transport_matrix[i, j] = np.nan
+                matrix[i, j] = np.nan
+
+    return matrix, transport_matrix

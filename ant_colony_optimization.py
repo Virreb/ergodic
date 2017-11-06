@@ -6,45 +6,48 @@ class AntGotLostException(Exception):
 
 
 def initiate_pheromones(score_graph):
-    import numpy as np
-
     norm = np.sqrt(np.nansum(np.square(score_graph)))
 
     return score_graph / norm
 
 
+def simplify_graph_to_matrix(punishment_graph):
+    punishment_matrix = np.nanmin(punishment_graph, axis=0)
+    transport_matrix = np.nanargmin(punishment_graph, axis=0)
+    return punishment_matrix, transport_matrix
+
+
 def get_next_city(current_city, city_extra_points, pheromone_levels, punishment_graph, alpha, beta):
 
-    available_pheromone_levels = pheromone_levels[:, current_city, :]
-    punishment_matrix = punishment_graph[:, current_city, :]
-    score_matrix = (1+city_extra_points) / punishment_matrix
+    available_pheromone_levels = pheromone_levels[current_city, :]
+    punishment_vector = punishment_graph[current_city, :]
+    score_matrix = (1+city_extra_points) / punishment_vector
 
-    probability_matrix = available_pheromone_levels**alpha * score_matrix**beta
-    probability_matrix = probability_matrix / np.nansum(probability_matrix)  # normalize
+    probability_vector = available_pheromone_levels**alpha * score_matrix**beta
+    probability_vector = probability_vector / np.nansum(probability_vector)  # normalize
 
-    cumulative_prob_vector = np.nancumsum(probability_matrix)
+    cumulative_prob_vector = np.nancumsum(probability_vector)
 
     r = np.random.rand()
-    winning_vector_index = np.searchsorted(cumulative_prob_vector, r)
-    tranpsort_choice, next_city = np.unravel_index(winning_vector_index, probability_matrix.shape)
-
-    return tranpsort_choice, next_city
+    next_city = np.searchsorted(cumulative_prob_vector, r)
+    return next_city
 
 
-def get_ant_path(city_extra_points, punishment_graph, start_city, target_city, phermone_levels, alpha, beta):
+def get_ant_path(city_extra_points, punishment_matrix, transport_matrix, start_city, target_city, pheromone_levels, alpha, beta):
 
     current_city = start_city
     nbr_of_cities = len(city_extra_points)
     temp_city_extra_points = np.copy(city_extra_points)
-    travelled_graph = np.zeros(shape=punishment_graph.shape)
+    travelled_matrix = np.zeros(shape=punishment_matrix.shape)
     travelled_path = []    # list of tuples (transport_choice, from_node, to_node)
 
     target_node_reached = False
     i = 0
     while not target_node_reached:
         temp_city_extra_points[current_city] = 0  # no additional points for going to the same node again
-        transport_choice, next_city = get_next_city(current_city, temp_city_extra_points, phermone_levels, punishment_graph, alpha, beta)
-        travelled_graph[transport_choice, current_city, next_city] += 1
+        next_city = get_next_city(current_city, temp_city_extra_points, pheromone_levels, punishment_matrix, alpha, beta)
+        travelled_matrix[current_city, next_city] += 1
+        transport_choice = transport_matrix[current_city, next_city]
         travelled_path.append((transport_choice, current_city, next_city))
         current_city = next_city
         if next_city == target_city:
@@ -53,12 +56,12 @@ def get_ant_path(city_extra_points, punishment_graph, start_city, target_city, p
         if i > 2*nbr_of_cities:
             raise AntGotLostException()
 
-    return travelled_graph, travelled_path
+    return travelled_matrix, travelled_path
 
 
-def evaluate_path(punishment_graph, city_extra_points, travelled_path):
-    total_punishment = np.nansum(punishment_graph * travelled_path)
-    visited_cities = np.sum(travelled_path > 0, axis=(0, 1))
+def evaluate_path(punishment_matrix, city_extra_points, travelled_matrix):
+    total_punishment = np.nansum(punishment_matrix * travelled_matrix)
+    visited_cities = np.sum(travelled_matrix > 0, axis=1) > 0
     total_city_extra_point = np.sum(city_extra_points[visited_cities])
 
     score = total_city_extra_point / total_punishment
@@ -77,13 +80,13 @@ def update_pheromones(old_pheromones, all_paths, all_scores, evaporation):
     return new_pheromones
 
 
-def summon_the_ergodic_colony(punishment_graph, city_extra_points, start_city=0, target_city=1, nbr_ants=30,
+def summon_the_ergodic_colony(punishment_matrix, transport_matrix, city_extra_points, start_city=0, target_city=1, nbr_ants=30,
                               nbr_max_iterations=500, evaporation=0.5, alpha=1.0, beta=3.0,
                               *args, **kwargs):
     import numpy as np
     import time
 
-    pheromones = initiate_pheromones(punishment_graph)
+    pheromones = initiate_pheromones(punishment_matrix)
 
     std_treshold = 0.1    # should be a parameter
     score_std = std_treshold
@@ -97,10 +100,10 @@ def summon_the_ergodic_colony(punishment_graph, city_extra_points, start_city=0,
 
         for ant in range(nbr_ants):
             try:
-                graph, path = get_ant_path(city_extra_points, punishment_graph, start_city, target_city, pheromones, alpha, beta)
-                score = evaluate_path(punishment_graph, city_extra_points, graph)
+                travelled_matrix, path = get_ant_path(city_extra_points, punishment_matrix, transport_matrix, start_city, target_city, pheromones, alpha, beta)
+                score = evaluate_path(punishment_matrix, city_extra_points, travelled_matrix)
                 # TODO: Check if the ant has found a path, if True, add path and score. Else, dont add
-                all_travelled_paths.append(graph)
+                all_travelled_paths.append(travelled_matrix)
                 all_scores.append(score)
 
                 if score > best_score:
@@ -113,7 +116,7 @@ def summon_the_ergodic_colony(punishment_graph, city_extra_points, start_city=0,
         i_iteration += 1
 
         pheromones = update_pheromones(pheromones, all_travelled_paths, all_scores, evaporation)
-        score_std = np.std(all_scores/np.mean(all_scores))
+        score_std = np.std(all_scores)
 
     computation_time = time.time() - start_time
 
