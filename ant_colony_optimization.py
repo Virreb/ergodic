@@ -47,14 +47,14 @@ def get_ant_path(city_extra_points, punishment_matrix, transport_matrix, start_c
         temp_city_extra_points[current_city] = 0  # no additional points for going to the same node again
         next_city = get_next_city(current_city, temp_city_extra_points, pheromone_levels, punishment_matrix, alpha, beta)
         travelled_matrix[current_city, next_city] += 1
-        transport_choice = transport_matrix[current_city, next_city]
+        transport_choice = int(transport_matrix[current_city, next_city])
         travelled_path.append((transport_choice, current_city, next_city))
         current_city = next_city
         if next_city == target_city:
             target_node_reached = True
         i += 1
-        if i > 2*nbr_of_cities:
-            raise AntGotLostException()
+        #if i > nbr_of_cities**2:     # TODO: CHECK THIS PARAM
+        #    raise AntGotLostException()
 
     return travelled_matrix, travelled_path
 
@@ -80,9 +80,9 @@ def update_pheromones(old_pheromones, all_paths, all_scores, evaporation):
     return new_pheromones
 
 
-def summon_the_ergodic_colony(punishment_matrix, transport_matrix, city_extra_points, start_city=0, target_city=1, nbr_ants=30,
-                              nbr_max_iterations=500, evaporation=0.5, alpha=1.0, beta=3.0,
-                              *args, **kwargs):
+def summon_the_ergodic_colony(punishment_matrix, transport_matrix, city_extra_points, start_city=0, target_city=1,
+                              nbr_ants=30, nbr_max_iterations=500, nbr_min_iterations=10, evaporation=0.5, alpha=1.0,
+                              beta=3.0, verbose=False, *args, **kwargs):
     import numpy as np
     import time
 
@@ -95,7 +95,7 @@ def summon_the_ergodic_colony(punishment_matrix, transport_matrix, city_extra_po
     best_score = 0
     start_time = time.time()
     nbr_lost_ants = 0
-    while score_std >= std_treshold and i_iteration <= nbr_max_iterations:
+    while (score_std >= std_treshold or i_iteration < nbr_min_iterations) and i_iteration <= nbr_max_iterations:
         all_travelled_paths = list()
         all_scores = list()
 
@@ -103,7 +103,6 @@ def summon_the_ergodic_colony(punishment_matrix, transport_matrix, city_extra_po
             try:
                 travelled_matrix, path = get_ant_path(city_extra_points, punishment_matrix, transport_matrix, start_city, target_city, pheromones, alpha, beta)
                 score = evaluate_path(punishment_matrix, city_extra_points, travelled_matrix)
-                # TODO: Check if the ant has found a path, if True, add path and score. Else, dont add
                 all_travelled_paths.append(travelled_matrix)
                 all_scores.append(score)
 
@@ -113,12 +112,14 @@ def summon_the_ergodic_colony(punishment_matrix, transport_matrix, city_extra_po
 
             except AntGotLostException:
                 nbr_lost_ants += 1
-                #print('Ant got lost:(')
 
             if nbr_lost_ants > 0.5*nbr_ants:
+
+                if verbose:
+                    print('Too many ants were lost, aborting mission :(')
+
                 return [], 0
 
-        #print(f'Iteration {i_iteration} of {nbr_max_iterations}', end='')
         i_iteration += 1
 
         pheromones = update_pheromones(pheromones, all_travelled_paths, all_scores, evaporation)
@@ -126,30 +127,42 @@ def summon_the_ergodic_colony(punishment_matrix, transport_matrix, city_extra_po
 
     computation_time = time.time() - start_time
 
-    print(f'\nThe Ergodic colony has converged in {i_iteration} of {nbr_max_iterations} iterations!\n'
-          f'Best path: {best_path}\n'
-          f'Best score: {best_score}\n'
-          f'Computation time: {computation_time}\n')
+    if verbose:
+        print(f'\nThe Ergodic colony has converged in {i_iteration} of {nbr_max_iterations} iterations!\n'
+              f'Best path: {best_path}\n'
+              f'Best score: {best_score}\n'
+              f'Computation time: {computation_time}')
 
     return best_path, best_score
 
 
-def run_parallel_colonies(nbr_parallel_jobs, nbr_colonies, *args, **kwargs):
+def run_parallel_colonies(nbr_parallel_jobs, nbr_colonies, args, kwargs):
     from joblib import Parallel, delayed
+    import pickle
 
-    all_result = Parallel(n_jobs=nbr_parallel_jobs)(delayed(summon_the_ergodic_colony)(args, kwargs)
-                                                    for i in range(nbr_colonies))
-
+    best_path = []
     best_score = 0
-    for res in all_result:
-        path = res[0]
-        score = res[1]
 
-        if score > best_score:
-            best_score = score
-            best_path = path
+    for i in range(int(nbr_colonies/nbr_parallel_jobs)):
+        try:
+            result_batch = Parallel(n_jobs=nbr_parallel_jobs)(
+                delayed(summon_the_ergodic_colony)(*args, **kwargs) for _ in range(nbr_parallel_jobs)
+                )
+        except KeyboardInterrupt:
+            pass
 
-    print(f'Finished! {nbr_parallell_colonies} colonies has converged.\n'
+        for res in result_batch:
+            path = res[0]
+            score = res[1]
+
+            if score > best_score:
+                best_score = score
+                best_path = path
+
+                with open('best.pkl', 'wb') as f:
+                    pickle.dump((best_path, best_score), f)
+
+    print(f'\n\nFinished! {nbr_colonies} colonies has converged.\n'
           f'Best score: {best_score}\nBest path: {best_path}')
 
-    return best_path, best_score, all_result
+    return best_path, best_score, result_batch

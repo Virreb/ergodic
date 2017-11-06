@@ -1,7 +1,6 @@
 import numpy as np
 
 
-
 def generate_static_connection_graph(nbr_transport_types, nbr_cities):
     graph = np.nan * np.zeros(shape=(nbr_transport_types, nbr_cities, nbr_cities))
     connected_cities = [[0, 1], [0, 3], [0, 8],
@@ -83,7 +82,7 @@ def add_random_paths_to_static_graph(distance_matrix, static_connection_graph):
         for from_city, to_city_vector in enumerate(both_city_matrix):
             for to_city, val in enumerate(to_city_vector):
 
-                if (from_city is not to_city and np.isnan(val) and np.random.rand() < 0.025) or val == 1:
+                if (from_city is not to_city and np.isnan(val) and np.random.rand() < 0.001) or val == 1:
                     dist = distance_matrix[from_city, to_city] * (1 + 0.2*np.random.rand())     # roads are not fågelvägen mostly
                     # speed = transport_type_speed[transport_type]
                     # time_offset = start_time_offset[transport_type]
@@ -164,7 +163,6 @@ def generate_punishment_graph_from_distance(nbr_transport_types, distance_matrix
 
 def generate_random_city_extra_points(nbr_cities, max_point=1):
     import numpy as np
-
     return np.random.rand(nbr_cities) * max_point
 
 
