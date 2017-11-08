@@ -13,7 +13,7 @@ def initiate_pheromones(score_graph):
     return score_graph/norm
 
 
-def get_next_city(current_city, city_extra_points, pheromone_levels, punishment_graph, alpha, beta):
+def get_next_city(current_city, pheromone_levels, punishment_graph, alpha, beta):
 
     available_pheromone_levels = pheromone_levels[:, current_city, :]
     punishment_matrix = punishment_graph[:, current_city, :]
@@ -32,47 +32,31 @@ def get_next_city(current_city, city_extra_points, pheromone_levels, punishment_
     return transport_choice, next_city
 
 
-def get_ant_path(city_extra_points, punishment_graph, start_city, target_city, phermone_levels, alpha, beta, time_limit):
+def get_ant_path(punishment_graph, start_city, target_city, phermone_levels, alpha, beta, time_limit):
     current_city = start_city
-    nbr_of_cities = len(city_extra_points)
-    temp_city_extra_points = np.copy(city_extra_points)
     travelled_graph = np.zeros(shape=punishment_graph.shape)
     travelled_path = []    # list of tuples (transport_choice, from_node, to_node)
 
     target_node_reached = False
-    i = 0
+    #i = 0
     total_time = 0
     while not target_node_reached:
-        temp_city_extra_points[current_city] = 0  # no additional points for going to the same node again
-        transport_choice, next_city = get_next_city(current_city, temp_city_extra_points, phermone_levels, punishment_graph, alpha, beta)
+        transport_choice, next_city = get_next_city(current_city, phermone_levels, punishment_graph, alpha, beta)
         travelled_graph[transport_choice, current_city, next_city] += 1
         travelled_path.append((transport_choice, current_city, next_city))
         current_city = next_city
         if next_city == target_city:
             target_node_reached = True
-        i += 1
-        if i > 2*nbr_of_cities:
-            raise AntGotLostException()
+        #i += 1
+        #if i > 2*nbr_of_cities:
+        #    raise AntGotLostException()
 
     return travelled_graph, travelled_path
 
 
-def evaluate_path_2d(punishment_matrix, city_extra_points, travelled_matrix):
-    total_punishment = np.nansum(punishment_matrix * travelled_matrix)
-    visited_cities = np.sum(travelled_matrix > 0, axis=1) > 0
-    total_city_extra_point = np.sum(city_extra_points[visited_cities])
-
-    #score = total_city_extra_point / total_punishment
-    score = 1/total_punishment
-
-    return score    # Maybe return travel time, punishment, score as different values
-
-
-def evaluate_path(punishment_graph, city_extra_points, travelled_graph):
+def evaluate_path(punishment_graph, travelled_graph):
     total_punishment = np.nansum(punishment_graph * travelled_graph)
     visited_cities = np.sum(travelled_graph > 0, axis=(0, 1)) > 0
-
-    total_city_extra_point = np.sum(city_extra_points[visited_cities])
 
     #score = total_city_extra_point / total_punishment
     score = 1 / total_punishment
@@ -113,7 +97,7 @@ def summon_the_ergodic_colony(punishment_graph, start_city=0, target_city=1, nbr
         for ant in range(nbr_ants):
             try:
                 graph, path = get_ant_path(punishment_graph, start_city, target_city, pheromones, alpha, beta)
-                score = evaluate_path(punishment_graph, city_extra_points, graph)
+                score = evaluate_path(punishment_graph, graph)
 
                 all_travelled_paths.append(graph)
                 all_scores.append(score)

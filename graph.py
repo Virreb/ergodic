@@ -204,8 +204,8 @@ def plot_graph(city_locations, punishment_graph, travelled_path):
 
 def generate_1d_vector_from_2d_map(given_map, pollution_list, trsp_speed_list, pollution_point_rate):
     len_of_map = len(given_map)
-    punishment_graph = np.zeros(shape=(6, len_of_map)) + np.nan
-    travel_time_graph = np.zeros(shape=(6, len_of_map)) + np.nan
+    punishment_graph = np.zeros(shape=(6, len_of_map**2, len_of_map**2), dtype=np.int8) + np.nan
+    travel_time_graph = np.zeros(shape=(6, len_of_map**2, len_of_map**2), dtype=np.int8) + np.nan
     for i in range(len_of_map): #y
         for j in range(len_of_map): #x
             land_type = given_map[i][j]
@@ -241,14 +241,14 @@ def transport_dict_to_vector(transport_list_of_dicts):
     trans_pollution_per_hour, trans_speed, trans_travel_interval = [], [], []
     for name in trans_str_list:
         for d in trans:
-            if d['name'] == name:
-                trans_pollution_per_hour.append(d['pollutions'])
-                trans_speed.append(d['speed'])
+            if d.name == name:
+                trans_pollution_per_hour.append(d.pollutions)
+                trans_speed.append(d.speed)
 
-                if d['travelInterval'] is None:
+                if d.travelInterval is None:
                     trans_travel_interval.append(np.NAN)
                 else:
-                    trans_travel_interval.append(d['travelInterval'])
+                    trans_travel_interval.append(d.travelInterval)
 
     return trans_pollution_per_hour, trans_speed, trans_travel_interval
 
@@ -259,21 +259,21 @@ def add_special_connections_to_punishment_graph(punishment_graph, cities, trans_
     city_indexes = dict()
     city_locations = dict()
     for city in cities:
-        city_index = city['y']*1000 + city['x']
-        city_indexes[city['name']] = city_index
-        city_locations[city['name']] = (city['x'], city['y'])
+        city_index = city.y*1000 + city.x
+        city_indexes[city.name] = city_index
+        city_locations[city.name] = (city.x, city.y)
 
     transport_types = ['hasFlightTo', 'hasTrainTo', 'hasBusTo']
     transport_types_nbrs = [5, 3, 2]
 
     for from_city in cities:
-        from_city_index = city_index[from_city['name']]
+        from_city_index = city_index[from_city.name]
 
         for tran_type, tran_nbr in zip(transport_types, transport_types_nbrs):
 
             for to_city_name in city[tran_type]:
                 to_city_index = city_index[to_city_name]
-                distance = np.linalg.norm(city_locations[to_city_name] - city_locations[from_city['name']])
+                distance = np.linalg.norm(city_locations[to_city_name] - city_locations[from_city.name])
                 travel_time = distance/trans_speed[tran_nbr]
                 punishment = trans_pollution_per_hour * travel_time / pollutions_point_rate
 
