@@ -46,9 +46,13 @@ def solve(game):
                     trans_travel_interval.append(d['travelInterval'])
 
     # Fix maps
-    punishment_graph = graph.ISAKSFUNK(game.map)
-    punishment_matrix, transport_matrix = graph.merge_graph_to_matrix(punishment_graph)
+    punishment_graph = graph.generate_1d_vector_from_2d_map(game.map,
+                                                            trans_pollution_per_hour,
+                                                            trans_speed,
+                                                            trans_pollution_per_hour)
 
+    punishment_matrix, transport_matrix = graph.merge_graph_to_matrix(punishment_graph)
+    print(punishment_graph)
     # Set arguments to ACO
     args = (punishment_matrix, transport_matrix, city_extra_points)
     kwargs = {
