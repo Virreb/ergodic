@@ -17,7 +17,8 @@ def get_next_city(current_city, city_extra_points, pheromone_levels, punishment_
 
     available_pheromone_levels = pheromone_levels[:, current_city, :]
     punishment_matrix = punishment_graph[:, current_city, :]
-    score_matrix = (1+city_extra_points) / punishment_matrix
+    # score_matrix = (1+city_extra_points) / punishment_matrix
+    score_matrix = 1/punishment_matrix
 
     probability_matrix = available_pheromone_levels**alpha * score_matrix**beta
     probability_matrix = probability_matrix / np.nansum(probability_matrix)  # normalize
@@ -61,14 +62,16 @@ def evaluate_path_2d(punishment_matrix, city_extra_points, travelled_matrix):
     visited_cities = np.sum(travelled_matrix > 0, axis=1) > 0
     total_city_extra_point = np.sum(city_extra_points[visited_cities])
 
-    score = total_city_extra_point / total_punishment
+    #score = total_city_extra_point / total_punishment
+    score = 1/total_punishment
 
     return score    # Maybe return travel time, punishment, score as different values
 
 
-def evaluate_path(punishment_graph, city_extra_points, travelled_path):
-    total_punishment = np.nansum(punishment_graph * travelled_path)
-    visited_cities = np.sum(travelled_path > 0, axis=(0, 1))
+def evaluate_path(punishment_graph, city_extra_points, travelled_graph):
+    total_punishment = np.nansum(punishment_graph * travelled_graph)
+    visited_cities = np.sum(travelled_graph > 0, axis=(0, 1)) > 0
+
     total_city_extra_point = np.sum(city_extra_points[visited_cities])
 
     score = total_city_extra_point / total_punishment

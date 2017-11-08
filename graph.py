@@ -206,8 +206,8 @@ def generate_1d_vector_from_2d_map(given_map, pollution_list, trsp_speed_list, p
     len_of_map = len(given_map)
     punishment_graph = np.zeros(shape=(6, len_of_map)) + np.nan
     travel_time_graph = np.zeros(shape=(6, len_of_map)) + np.nan
-    for i in range(len_of_map):
-        for j in range(len_of_map):
+    for i in range(len_of_map): #y
+        for j in range(len_of_map): #x
             land_type = given_map[i][j]
             if land_type == "W":
                 transport_choices = [4]
@@ -229,7 +229,7 @@ def generate_1d_vector_from_2d_map(given_map, pollution_list, trsp_speed_list, p
                     punish_point = 1/pollution_point_rate * pollution_list[transport_choice] * travel_time
                     punishment_graph[transport_choice, i * 1000 + j, to_node] = punish_point
 
-    return punishment_graph
+    return punishment_graph, travel_time_graph
 
 
 def transport_dict_to_vector(transport_list_of_dicts):
