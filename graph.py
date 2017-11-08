@@ -229,4 +229,4 @@ def generate_1d_vector_from_2d_map(given_map, pollution_list, trsp_speed_list, p
                     punish_point = 1/pollution_point_rate * pollution_list[transport_choice] * travel_time
                     punishment_graph[transport_choice, i * 1000 + j, to_node] = punish_point
 
-    return punishment_graph
+    return punishment_graph, travel_time_graph
