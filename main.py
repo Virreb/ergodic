@@ -29,27 +29,13 @@ def solve(game):
     pollutions_point_rate = game.pollutionsPointRate
     all_cities = game.cities
 
-    # Fix transport data to lists
-    trans_str_list = ['Bike', 'Car', 'Bus', 'Train', 'Boat', 'Flight']
-    trans = game.transportation
-
-    trans_pollution_per_hour, trans_speed, trans_travel_interval = [], [], []
-    for name in trans_str_list:
-        for d in trans:
-            if d['name'] == name:
-                trans_pollution_per_hour.append(d['pollutions'])
-                trans_speed.append(d['speed'])
-
-                if d['travelInterval'] is None:
-                    trans_travel_interval.append(np.NAN)
-                else:
-                    trans_travel_interval.append(d['travelInterval'])
+    trans_pollution_per_hour, trans_speed, trans_travel_interval = graph.transport_dict_to_vector(game.transport)
 
     # Fix maps
     punishment_graph = graph.generate_1d_vector_from_2d_map(game.map,
                                                             trans_pollution_per_hour,
                                                             trans_speed,
-                                                            trans_pollution_per_hour)
+                                                            pollutions_point_rate)
 
     punishment_matrix, transport_matrix = graph.merge_graph_to_matrix(punishment_graph)
     print(punishment_graph)

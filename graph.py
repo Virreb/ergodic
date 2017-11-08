@@ -230,3 +230,53 @@ def generate_1d_vector_from_2d_map(given_map, pollution_list, trsp_speed_list, p
                     punishment_graph[transport_choice, i * 1000 + j, to_node] = punish_point
 
     return punishment_graph
+
+
+def transport_dict_to_vector(transport_list_of_dicts):
+
+    # Fix transport data to lists
+    trans_str_list = ['Bike', 'Car', 'Bus', 'Train', 'Boat', 'Flight']
+    trans = transport_list_of_dicts
+
+    trans_pollution_per_hour, trans_speed, trans_travel_interval = [], [], []
+    for name in trans_str_list:
+        for d in trans:
+            if d['name'] == name:
+                trans_pollution_per_hour.append(d['pollutions'])
+                trans_speed.append(d['speed'])
+
+                if d['travelInterval'] is None:
+                    trans_travel_interval.append(np.NAN)
+                else:
+                    trans_travel_interval.append(d['travelInterval'])
+
+    return trans_pollution_per_hour, trans_speed, trans_travel_interval
+
+
+def add_special_connections_to_punishment_graph(punishment_graph, cities, trans_pollution_per_hour, trans_speed, pollutions_point_rate):
+    import numpy as np
+
+    city_indexes = dict()
+    city_locations = dict()
+    for city in cities:
+        city_index = city['y']*1000 + city['x']
+        city_indexes[city['name']] = city_index
+        city_locations[city['name']] = (city['x'], city['y'])
+
+    transport_types = ['hasFlightTo', 'hasTrainTo', 'hasBusTo']
+    transport_types_nbrs = [5, 3, 2]
+
+    for from_city in cities:
+        from_city_index = city_index[from_city['name']]
+
+        for tran_type, tran_nbr in zip(transport_types, transport_types_nbrs):
+
+            for to_city_name in city[tran_type]:
+                to_city_index = city_index[to_city_name]
+                distance = np.linalg.norm(city_locations[to_city_name] - city_locations[from_city['name']])
+                travel_time = distance/trans_speed[tran_nbr]
+                punishment = trans_pollution_per_hour * travel_time / pollutions_point_rate
+
+                punishment_graph[tran_nbr, from_city_index, to_city_index] = punishment
+
+    return punishment_graph
