@@ -66,9 +66,10 @@ def evaluate_path_2d(punishment_matrix, city_extra_points, travelled_matrix):
     return score    # Maybe return travel time, punishment, score as different values
 
 
-def evaluate_path(punishment_graph, city_extra_points, travelled_path):
-    total_punishment = np.nansum(punishment_graph * travelled_path)
-    visited_cities = np.sum(travelled_path > 0, axis=(0, 1))
+def evaluate_path(punishment_graph, city_extra_points, travelled_graph):
+    total_punishment = np.nansum(punishment_graph * travelled_graph)
+    visited_cities = np.sum(travelled_graph > 0, axis=(0, 1)) > 0
+
     total_city_extra_point = np.sum(city_extra_points[visited_cities])
 
     score = total_city_extra_point / total_punishment
