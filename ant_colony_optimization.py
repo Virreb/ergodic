@@ -32,7 +32,7 @@ def get_next_city(current_city, city_extra_points, pheromone_levels, punishment_
     return transport_choice, next_city
 
 
-def get_ant_path(city_extra_points, punishment_graph, start_city, target_city, phermone_levels, alpha, beta):
+def get_ant_path(city_extra_points, punishment_graph, start_city, target_city, phermone_levels, alpha, beta, time_limit):
 
     current_city = start_city
     nbr_of_cities = len(city_extra_points)
@@ -42,6 +42,7 @@ def get_ant_path(city_extra_points, punishment_graph, start_city, target_city, p
 
     target_node_reached = False
     i = 0
+    total_time = 0
     while not target_node_reached:
         temp_city_extra_points[current_city] = 0  # no additional points for going to the same node again
         transport_choice, next_city = get_next_city(current_city, temp_city_extra_points, phermone_levels, punishment_graph, alpha, beta)
@@ -74,7 +75,8 @@ def evaluate_path(punishment_graph, city_extra_points, travelled_graph):
 
     total_city_extra_point = np.sum(city_extra_points[visited_cities])
 
-    score = total_city_extra_point / total_punishment
+    #score = total_city_extra_point / total_punishment
+    score = 1 / total_punishment
 
     return score    # Maybe return travel time, punishment, score as different values
 
