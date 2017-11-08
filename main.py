@@ -29,6 +29,9 @@ def solve(game):
     pollutions_point_rate = game.pollutionsPointRate
     all_cities = game.cities
 
+    start_city = map_start_city[1]*1000 + map_start_city[0]
+    target_city = map_target_city[1]*1000 + map_target_city[0]
+
     trans_pollution_per_hour, trans_speed, trans_travel_interval = graph.transport_dict_to_vector(game.transport)
 
     # Fix maps
@@ -38,9 +41,13 @@ def solve(game):
                                                             pollutions_point_rate)
 
     punishment_matrix, transport_matrix = graph.merge_graph_to_matrix(punishment_graph)
+
+    city_e
+
     print(punishment_graph)
+
     # Set arguments to ACO
-    args = (punishment_matrix, transport_matrix, city_extra_points)
+    args = (punishment_matrix, transport_matrix)
     kwargs = {
         'start_city': start_city,
         'target_city': target_city,
@@ -52,7 +59,8 @@ def solve(game):
     }
 
     # Run in parallel
-    best_path, best_score, all_results = aco.run_parallel_colonies(nbr_parallel_jobs, nbr_colonies, args, kwargs)
+    aco.summon_the_ergodic_colony(punishment_graph, )
+    #best_path, best_score, all_results = aco.run_parallel_colonies(nbr_parallel_jobs, nbr_colonies, args, kwargs)
 
     #    # Example solution
     #    solution = list()
@@ -64,7 +72,7 @@ def solve(game):
     #    while y < game.end.y:
     #        y += 1
     #        solution.append("TRAVEL SOUTH")
-
+    solution = []
     return solution
 
 

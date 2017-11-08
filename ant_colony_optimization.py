@@ -32,7 +32,7 @@ def get_next_city(current_city, city_extra_points, pheromone_levels, punishment_
     return transport_choice, next_city
 
 
-def get_ant_path(city_extra_points, punishment_graph, start_city, target_city, phermone_levels, alpha, beta):
+def get_ant_path(punishment_graph, start_city, target_city, phermone_levels, alpha, beta):
 
     current_city = start_city
     nbr_of_cities = len(city_extra_points)
@@ -90,7 +90,7 @@ def update_pheromones(old_pheromones, all_paths, all_scores, evaporation):
     return new_pheromones
 
 
-def summon_the_ergodic_colony(punishment_graph, city_extra_points, start_city=0, target_city=1, nbr_ants=30,
+def summon_the_ergodic_colony(punishment_graph, start_city=0, target_city=1, nbr_ants=30,
                               nbr_max_iterations=500, evaporation=0.5, alpha=1.0, beta=3.0,
                               *args, **kwargs):
     import numpy as np
@@ -111,7 +111,7 @@ def summon_the_ergodic_colony(punishment_graph, city_extra_points, start_city=0,
 
         for ant in range(nbr_ants):
             try:
-                graph, path = get_ant_path(city_extra_points, punishment_graph, start_city, target_city, pheromones, alpha, beta)
+                graph, path = get_ant_path(punishment_graph, start_city, target_city, pheromones, alpha, beta)
                 score = evaluate_path(punishment_graph, city_extra_points, graph)
 
                 all_travelled_paths.append(graph)
