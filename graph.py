@@ -217,3 +217,34 @@ def plot_graph(city_locations, punishment_graph, travelled_path):
     nx.draw_networkx_edges(G, pos, edgelist=black_edges, arrows=False)
     nx.draw_networkx_edges(G, pos, edgelist=red_edges, edge_color='r', arrows=True)
     plt.show()
+
+
+def generate_1d_vector_from_2d_map(given_map, pollution_list, trsp_speed_list, pollution_point_rate):
+    len_of_map = len(given_map)
+    punishment_graph = np.zeros(shape=(6, len_of_map)) + np.nan
+    travel_time_graph = np.zeros(shape=(6, len_of_map)) + np.nan
+    for i in range(len_of_map):
+        for j in range(len_of_map):
+            land_type = given_map[i][j]
+            if land_type == "W":
+                transport_choices = [4]
+            else:
+                transport_choices = [0, 1]
+            for transport_choice in transport_choices:
+                prel_to_matrix = [i*1000+j+1, i*1000+j-1, (i+1)*1000+j, (i-1)*1000+j]
+                if i == 0:
+                    prel_to_matrix.remove((i-1)*1000+j)
+                if i == 999:
+                    prel_to_matrix.remove((i+1)*1000+j)
+                if j == 0:
+                    prel_to_matrix.remove(i*1000+j-1)
+                if j == 999:
+                    prel_to_matrix.remove(i*1000+j+1)
+                for to_node in prel_to_matrix:
+                    travel_time = 1/trsp_speed_list[transport_choice]
+                    travel_time_graph[transport_choice, i * 1000 + j, to_node] = travel_time
+                    punish_point = 1/pollution_point_rate * pollution_list[transport_choice] * travel_time
+                    punishment_graph[transport_choice, i * 1000 + j, to_node] = punish_point
+
+    return punishment_graph
+
